@@ -129,6 +129,7 @@ set(EXAMPLES
   tunnel
   wrapmodes
   chapter2
+  chapter3
 )
 
 find_package(OpenMP)
