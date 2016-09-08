@@ -8,7 +8,7 @@ namespace shader
 {
 
 GLuint load(const char * filename,
-            GLenum shader_type = GL_FRAGMENT_SHADER,
+            GLenum shader_type,
 #ifdef _DEBUG
             bool check_errors = true);
 #else
