@@ -1,5 +1,6 @@
 #include <sb7.h>
 #include <math.h>
+#include <shader.h>
 
 class chapter3 : public sb7::application
 {
@@ -17,9 +18,22 @@ public:
 
 	void startup() override
 	{
-		programId = compile_shaders();
+		GLuint vertexShaderId = sb7::shader::load("chapter3/chapter3.vs.glsl", GL_VERTEX_SHADER);
+		GLuint tessControlShaderId = sb7::shader::load("chapter3/chapter3.tcs.glsl", GL_TESS_CONTROL_SHADER);
+		GLuint tessEvalShaderId = sb7::shader::load("chapter3/chapter3.tes.glsl", GL_TESS_EVALUATION_SHADER);
+		GLuint fragmentShaderId = sb7::shader::load("chapter3/chapter3.fs.glsl", GL_FRAGMENT_SHADER);
+		GLuint shaders[] = {
+			vertexShaderId,
+			tessControlShaderId,
+			tessEvalShaderId,
+			fragmentShaderId
+		};
+
+		programId = sb7::program::link_from_shaders(shaders, sizeof(shaders) / sizeof(shaders[0]), true, true);
+
 		glCreateVertexArrays(1, &vaoId);
 		glBindVertexArray(vaoId);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
 	void shutdown() override
@@ -28,61 +42,30 @@ public:
 		glDeleteProgram(programId);
 	}
 
-	static GLuint compile_shaders()
-	{
-		GLuint vertexShaderId;
-		GLuint fragmentShaderId;
-		GLuint programId;
-
-		static const GLchar * vShaderSource[] = {
-			"#version 450 core\n"
-			"void main(void)\n"
-			"{\n"
-			"    const vec4 verts[] = vec4[] (\n"
-			"        vec4( 0.62, -0.62, 0.5, 1.0),"
-			"        vec4(-0.62, -0.62, 0.5, 1.0),"
-			"        vec4( 0.62,  0.62, 0.5, 1.0)"
-			"    );\n"
-			"    gl_Position = verts[gl_VertexID];\n"
-			"}\n"
-		};
-
-		static const GLchar * fShaderSource[] = {
-			"#version 450 core\n"
-			"out vec4 color;\n"
-			"void main(void)\n"
-			"{\n"
-			"    color = vec4(0.3, 0.6, 1.0, 1.0);\n"
-			"}\n"
-		};
-
-		vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShaderId, 1, vShaderSource, nullptr);
-		glCompileShader(vertexShaderId);
-
-		fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShaderId, 1, fShaderSource, nullptr);
-		glCompileShader(fragmentShaderId);
-
-		programId = glCreateProgram();
-		glAttachShader(programId, vertexShaderId);
-		glAttachShader(programId, fragmentShaderId);
-		glLinkProgram(programId);
-
-		glDeleteShader(vertexShaderId);
-		glDeleteShader(fragmentShaderId);
-
-		return programId;
-	}
-
 	void render(double currentTime) override
 	{
-		static const GLfloat bgColor[] = { 0.16f, 0.16f, 0.16f, 1.0f };
+		static const GLfloat bgColor[] = {0.16f, 0.16f, 0.16f, 1.0f};
 		glClearBufferfv(GL_COLOR, 0, bgColor);
 
 		glUseProgram(programId);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		GLfloat offset[] = {
+			(float)sin(currentTime) * 0.33f,
+			(float)cos(currentTime) * 0.2f,
+			0.0f,
+			0.0f
+		};
+		glVertexAttrib4fv(0, offset);
+
+		GLfloat triColor[] = {
+			(float)sin(currentTime),
+			(float)cos(currentTime),
+			(float)sin(currentTime * 0.1),
+			1.0f
+		};
+		glVertexAttrib4fv(1, triColor);
+
+		glDrawArrays(GL_PATCHES, 0, 3);
 	}
 };
 
