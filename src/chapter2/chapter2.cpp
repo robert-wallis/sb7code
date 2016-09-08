@@ -6,7 +6,15 @@ class l21 : public sb7::application
 	GLuint programId;
 	GLuint vaoId;
 	GLfloat bgColor[4];
+
 public:
+
+	void init() override
+	{
+		static const char title[] = "Chapter 2";
+		sb7::application::init();
+		memcpy(info.title, title, sizeof(title));
+	}
 
 	void startup() override
 	{
@@ -32,7 +40,12 @@ public:
 			"#version 450 core\n"
 			"void main(void)\n"
 			"{\n"
-			"    gl_Position = vec4(0.0, 0.0, 0.5, 1.0);\n"
+			"    const vec4 verts[] = vec4[] (\n"
+			"        vec4( 0.62, -0.62, 0.5, 1.0),"
+			"        vec4(-0.62, -0.62, 0.5, 1.0),"
+			"        vec4( 0.62,  0.62, 0.5, 1.0)"
+			"    );\n"
+			"    gl_Position = verts[gl_VertexID];\n"
 			"}\n"
 		};
 
@@ -74,7 +87,7 @@ public:
 
 		glUseProgram(programId);
 
-		glDrawArrays(GL_POINTS, 0, 1);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 };
 
